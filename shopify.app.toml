@@ -2,23 +2,18 @@
 
 client_id = "8f1681559f943fe4e3619d99a8b206c3"
 name = "Ultra Matrix"
-application_url = "https://example.com"
+application_url = "https://ultra-matrix-production.up.railway.app"
 embedded = false
 handle = "ultra-matrix-1"
 
 [webhooks]
 api_version = "2026-01"
 
-  [[webhooks.subscriptions]]
-  topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
-
 [access_scopes]
 scopes = "read_content,write_content,read_themes,write_themes,read_products,write_products"
-use_legacy_install_flow = true
 
 [auth]
-redirect_urls = [ "https://example.com/auth/callback" ]
+redirect_urls = [ "https://ultra-matrix-production.up.railway.app/auth/callback" ]
 
 [build]
 automatically_update_urls_on_dev = true
