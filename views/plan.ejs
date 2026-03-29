@@ -1,0 +1,129 @@
+<%- include('partials/layout-top', { page: 'plan', pageTitle: 'Plan', shopDomain }) %>
+
+<div class="page-header">
+  <h2>Plan</h2>
+  <a href="/" class="btn btn-outline btn-sm">Back</a>
+</div>
+
+<div class="page-body">
+  <!-- Current Plan Banner -->
+  <div class="card">
+    <div class="card-body" style="text-align: center; padding: 24px;">
+      <h3 style="margin-bottom: 8px;">Current Plan: <strong style="color: var(--primary);"><%= (shop.plan || 'free').charAt(0).toUpperCase() + (shop.plan || 'free').slice(1) %></strong></h3>
+      <p style="color: var(--text-muted);">
+        <% if (shop.plan === 'free' || !shop.plan) { %>
+          You are on the free plan with limited imports. Upgrade to unlock more.
+        <% } else if (shop.plan === 'basic') { %>
+          You are enjoying standard import limits.
+        <% } else if (shop.plan === 'big') { %>
+          You are enjoying very large limits per job, and have 5x speed.
+        <% } else { %>
+          You have unlimited imports with maximum speed.
+        <% } %>
+      </p>
+      <% if (shop.planExpiresAt) { %>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
+          Plan expires at: <%= new Date(shop.planExpiresAt).toLocaleString() %>
+        </p>
+      <% } %>
+      <p style="margin-top: 8px;"><a href="#">Read more about Pricing</a></p>
+    </div>
+  </div>
+
+  <!-- Plans Grid -->
+  <div class="plans-grid">
+    <!-- Demo/Free -->
+    <div class="plan-card <%= (!shop.plan || shop.plan === 'free') ? 'active' : '' %>">
+      <div class="plan-name">Demo</div>
+      <div class="plan-price">Free</div>
+      <ul class="plan-features">
+        <li><span>Products</span><span>10</span></li>
+        <li><span>Smart Collections</span><span>10</span></li>
+        <li><span>Custom Collections</span><span>10</span></li>
+        <li><span>Customers</span><span>10</span></li>
+        <li><span>Pages</span><span>10</span></li>
+        <li><span>Blog Posts</span><span>10</span></li>
+        <li><span>Redirects</span><span>10</span></li>
+        <li><span>Orders</span><span>10</span></li>
+        <li><span>Metaobjects</span><span>10</span></li>
+      </ul>
+      <% if (!shop.plan || shop.plan === 'free') { %>
+        <span class="badge badge-completed">Current Plan</span>
+      <% } %>
+    </div>
+
+    <!-- Basic -->
+    <div class="plan-card <%= shop.plan === 'basic' ? 'active' : '' %>">
+      <div class="plan-name">Basic</div>
+      <div class="plan-price">$20 <span>per 30 days</span></div>
+      <ul class="plan-features">
+        <li><span>Products</span><span>5,000</span></li>
+        <li><span>Smart Collections</span><span>300</span></li>
+        <li><span>Custom Collections</span><span>300</span></li>
+        <li><span>Customers</span><span>2,000</span></li>
+        <li><span>Pages</span><span>50</span></li>
+        <li><span>Blog Posts</span><span>50</span></li>
+        <li><span>Redirects</span><span>10,000</span></li>
+        <li><span>Orders</span><span>1,000</span></li>
+        <li><span>Metafields</span><span>✓</span></li>
+        <li><span>Scheduling</span><span>✓</span></li>
+      </ul>
+      <% if (shop.plan === 'basic') { %>
+        <span class="badge badge-completed">Current Plan</span>
+      <% } else { %>
+        <button class="btn btn-primary" style="width: 100%;">Select Basic</button>
+      <% } %>
+    </div>
+
+    <!-- Big -->
+    <div class="plan-card <%= shop.plan === 'big' ? 'active' : '' %>">
+      <div class="plan-name">Big</div>
+      <div class="plan-price">$50 <span>per 30 days</span></div>
+      <ul class="plan-features">
+        <li><span>Products</span><span>50,000</span></li>
+        <li><span>Smart Collections</span><span>3,000</span></li>
+        <li><span>Custom Collections</span><span>3,000</span></li>
+        <li><span>Customers</span><span>20,000</span></li>
+        <li><span>Pages</span><span>600</span></li>
+        <li><span>Blog Posts</span><span>500</span></li>
+        <li><span>Redirects</span><span>100,000</span></li>
+        <li><span>Orders</span><span>10,000</span></li>
+        <li><span>Metafields</span><span>✓</span></li>
+        <li><span>Scheduling</span><span>✓</span></li>
+        <li><span>5x Speed</span><span>✓</span></li>
+      </ul>
+      <% if (shop.plan === 'big') { %>
+        <span class="badge badge-completed">Current Plan</span>
+      <% } else { %>
+        <button class="btn btn-primary" style="width: 100%;">Select Big</button>
+      <% } %>
+    </div>
+
+    <!-- Enterprise -->
+    <div class="plan-card <%= shop.plan === 'enterprise' ? 'active' : '' %>">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price">$200 <span>per 30 days</span></div>
+      <ul class="plan-features">
+        <li><span>Products</span><span>Unlimited</span></li>
+        <li><span>Smart Collections</span><span>Unlimited</span></li>
+        <li><span>Custom Collections</span><span>Unlimited</span></li>
+        <li><span>Customers</span><span>Unlimited</span></li>
+        <li><span>Pages</span><span>Unlimited</span></li>
+        <li><span>Blog Posts</span><span>Unlimited</span></li>
+        <li><span>Redirects</span><span>Unlimited</span></li>
+        <li><span>Orders</span><span>Unlimited</span></li>
+        <li><span>Metafields</span><span>✓</span></li>
+        <li><span>Scheduling</span><span>✓</span></li>
+        <li><span>Max Speed</span><span>✓</span></li>
+        <li><span>Priority Support</span><span>✓</span></li>
+      </ul>
+      <% if (shop.plan === 'enterprise') { %>
+        <span class="badge badge-completed">Current Plan</span>
+      <% } else { %>
+        <button class="btn btn-primary" style="width: 100%;">Select Enterprise</button>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/layout-bottom') %>

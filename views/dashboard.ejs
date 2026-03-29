@@ -1,0 +1,129 @@
+<%- include('partials/layout-top', { page: 'home', pageTitle: 'Dashboard', shopDomain }) %>
+
+<div class="page-header">
+  <h2>Ultra Matrix</h2>
+  <a href="/jobs" class="btn btn-primary">+ New Import</a>
+</div>
+
+<div class="page-body">
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value"><%= stats.totalJobs %></div>
+      <div class="stat-label">Total Jobs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value"><%= stats.completedJobs %></div>
+      <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value"><%= stats.processingJobs %></div>
+      <div class="stat-label">Processing</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value"><%= stats.failedJobs %></div>
+      <div class="stat-label">Failed</div>
+    </div>
+  </div>
+
+  <!-- Quick Import -->
+  <div class="card">
+    <div class="card-header">Quick Import</div>
+    <div class="card-body">
+      <form action="/jobs/import" method="POST" enctype="multipart/form-data" id="importForm">
+        <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+          <div class="form-group" style="flex: 1;">
+            <label>Resource Type</label>
+            <select name="resourceType" class="form-control">
+              <option value="blog_posts">Blog Posts</option>
+              <option value="pages">Pages</option>
+            </select>
+          </div>
+        </div>
+        <div class="upload-area" id="uploadArea" onclick="document.getElementById('csvFile').click()">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">Drop your CSV file here or click to browse</div>
+          <div class="upload-hint">Supports Matrixify-compatible CSV format. Max 100MB.</div>
+          <input type="file" name="csvFile" id="csvFile" accept=".csv,.tsv,.txt" style="display:none" onchange="handleFileSelect(this)">
+        </div>
+        <div id="fileInfo" style="display:none; margin-top: 12px;">
+          <div class="alert alert-info">
+            Selected: <strong id="fileName"></strong> (<span id="fileSize"></span>)
+          </div>
+          <button type="submit" class="btn btn-success btn-lg" style="width: 100%;">
+            Start Import
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Recent Jobs -->
+  <div class="card">
+    <div class="card-header">
+      Recent Jobs
+      <a href="/jobs" class="btn btn-outline btn-sm">View All</a>
+    </div>
+    <% if (recentJobs.length === 0) { %>
+      <div class="card-body" style="text-align: center; color: var(--text-muted); padding: 40px;">
+        No jobs yet. Upload a CSV to get started!
+      </div>
+    <% } else { %>
+      <% recentJobs.forEach(job => { %>
+        <a href="/jobs/<%= job.id %>" style="text-decoration: none; color: inherit;">
+          <div class="job-row">
+            <div class="job-icon">
+              <%= job.type === 'import' ? '📥' : '📤' %>
+            </div>
+            <div class="job-info">
+              <div class="job-title"><%= job.resourceType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %></div>
+              <div class="job-meta">
+                <%= job.type.charAt(0).toUpperCase() + job.type.slice(1) %> &middot;
+                <%= new Date(job.createdAt).toLocaleString() %>
+                <% if (job.duration) { %>&middot; Duration: <%= job.duration %>s<% } %>
+              </div>
+            </div>
+            <div class="job-stats">
+              <% if (job.totalItems > 0) { %>
+                <span style="font-size: 13px; color: var(--text-muted);"><%= job.processedItems %>/<%= job.totalItems %></span>
+              <% } %>
+              <% if (job.newItems > 0) { %><span class="badge badge-new">New: <%= job.newItems %></span><% } %>
+              <% if (job.updatedItems > 0) { %><span class="badge badge-updated">Updated: <%= job.updatedItems %></span><% } %>
+            </div>
+            <div class="job-right">
+              <span class="badge badge-<%= job.status %>"><%= job.status %></span>
+              <% if (job.fileName) { %>
+                <div class="job-file"><%= job.fileName %></div>
+              <% } %>
+            </div>
+          </div>
+        </a>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <!-- API Info -->
+  <div class="card">
+    <div class="card-header">Agent API Access</div>
+    <div class="card-body">
+      <p style="margin-bottom: 12px; color: var(--text-muted);">
+        Use the REST API to import content from Claude Cowork, OpenClaw, or any automation tool.
+      </p>
+      <div class="api-key-display">
+        POST /api/v1/import<br>
+        Authorization: Bearer &lt;your-api-key&gt;<br><br>
+        // JSON body example:<br>
+        {<br>
+        &nbsp;&nbsp;"records": [{"Title": "My Post", "Body HTML": "&lt;p&gt;Hello&lt;/p&gt;", "Blog: Handle": "news"}],<br>
+        &nbsp;&nbsp;"resource_type": "blog_posts"<br>
+        }
+      </div>
+      <p style="margin-top: 12px;">
+        <a href="/settings">Manage API keys in Settings</a> &middot;
+        <a href="/api/v1/docs" target="_blank">Full API docs</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<%- include('partials/layout-bottom') %>

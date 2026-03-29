@@ -1,0 +1,200 @@
+<%- include('partials/layout-top', { page: 'settings', pageTitle: 'Settings', shopDomain }) %>
+
+<div class="page-header">
+  <h2>Settings</h2>
+  <a href="/" class="btn btn-outline btn-sm">Back</a>
+</div>
+
+<div class="page-body">
+  <% if (typeof saved !== 'undefined' || (typeof query !== 'undefined' && query?.saved)) { %>
+    <div class="alert alert-success">Settings saved successfully!</div>
+  <% } %>
+
+  <% const newKey = typeof require !== 'undefined' ? null : null; %>
+
+  <div class="settings-layout">
+    <!-- Settings Nav -->
+    <div class="settings-nav">
+      <a href="#security" class="active" onclick="showSection('security', this)">🔒 Security</a>
+      <a href="#notifications" onclick="showSection('notifications', this)">🔔 Notifications</a>
+      <a href="#defaults" onclick="showSection('defaults', this)">📋 Defaults</a>
+      <a href="#api-keys" onclick="showSection('api-keys', this)">🔑 API Keys</a>
+      <a href="#api-access" onclick="showSection('api-access', this)">🔌 API Access Scopes</a>
+    </div>
+
+    <!-- Settings Content -->
+    <div class="settings-content">
+      <!-- Security Section -->
+      <div id="section-security" class="card settings-section">
+        <div class="card-header">🔒 Security</div>
+        <div class="card-body">
+          <form method="POST" action="/settings">
+            <div class="form-check">
+              <input type="checkbox" name="allowExternalDownload" id="allowExternalDownload"
+                <%= settings.allowExternalDownload ? 'checked' : '' %>>
+              <label for="allowExternalDownload">Allow downloading your files by external services.</label>
+            </div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">
+              <a href="#">Read more about Security.</a>
+            </p>
+            <button type="submit" class="btn btn-primary" style="margin-top: 16px;">Save</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Notifications Section -->
+      <div id="section-notifications" class="card settings-section" style="display: none;">
+        <div class="card-header">🔔 Notifications</div>
+        <div class="card-body">
+          <form method="POST" action="/settings">
+            <input type="hidden" name="allowExternalDownload" value="<%= settings.allowExternalDownload ? 'on' : '' %>">
+            <div class="form-check">
+              <input type="checkbox" name="notifyOnComplete" id="notifyOnComplete"
+                <%= settings.notifyOnComplete ? 'checked' : '' %>>
+              <label for="notifyOnComplete">Email me when a job completes</label>
+            </div>
+            <div class="form-group" style="margin-top: 12px;">
+              <label>Notification Email</label>
+              <input type="email" name="notifyEmail" class="form-control"
+                value="<%= settings.notifyEmail || '' %>" placeholder="your@email.com">
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Defaults Section -->
+      <div id="section-defaults" class="card settings-section" style="display: none;">
+        <div class="card-header">📋 Import Defaults</div>
+        <div class="card-body">
+          <form method="POST" action="/settings">
+            <input type="hidden" name="allowExternalDownload" value="<%= settings.allowExternalDownload ? 'on' : '' %>">
+            <input type="hidden" name="notifyOnComplete" value="<%= settings.notifyOnComplete ? 'on' : '' %>">
+            <div class="form-group">
+              <label>Default Blog Handle</label>
+              <input type="text" name="defaultBlogHandle" class="form-control"
+                value="<%= settings.defaultBlogHandle || 'news' %>" placeholder="news">
+              <p style="color: var(--text-muted); font-size: 12px; margin-top: 4px;">
+                Blog posts without a "Blog: Handle" column will be imported to this blog.
+              </p>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- API Keys Section -->
+      <div id="section-api-keys" class="card settings-section" style="display: none;">
+        <div class="card-header">
+          🔑 API Keys
+          <form method="POST" action="/settings/api-keys" style="display: flex; gap: 8px;">
+            <input type="text" name="name" class="form-control" placeholder="Key name (e.g. Claude Cowork)" style="width: 220px;">
+            <button type="submit" class="btn btn-primary btn-sm">Generate New Key</button>
+          </form>
+        </div>
+        <div class="card-body">
+          <% if (envApiKey) { %>
+            <div class="alert alert-info" style="margin-bottom: 16px;">
+              <strong>Environment API Key:</strong> <%= envApiKey %> (set via ULTRA_MATRIX_API_KEY env var)
+            </div>
+          <% } %>
+
+          <% if (apiKeys.length === 0) { %>
+            <p style="color: var(--text-muted); text-align: center; padding: 20px;">
+              No API keys generated yet. Create one to allow agents to access Ultra Matrix.
+            </p>
+          <% } else { %>
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Key</th>
+                  <th>Status</th>
+                  <th>Last Used</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% apiKeys.forEach(key => { %>
+                  <tr>
+                    <td><%= key.name %></td>
+                    <td class="mono"><%= key.key.slice(0, 8) %>••••••<%= key.key.slice(-4) %></td>
+                    <td>
+                      <span class="badge badge-<%= key.isActive ? 'completed' : 'failed' %>">
+                        <%= key.isActive ? 'Active' : 'Revoked' %>
+                      </span>
+                    </td>
+                    <td><%= key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleString() : 'Never' %></td>
+                    <td><%= new Date(key.createdAt).toLocaleDateString() %></td>
+                    <td>
+                      <% if (key.isActive) { %>
+                        <form action="/settings/api-keys/<%= key.id %>/revoke" method="POST" style="display:inline;">
+                          <button class="btn btn-outline btn-sm">Revoke</button>
+                        </form>
+                      <% } %>
+                      <form action="/settings/api-keys/<%= key.id %>/delete" method="POST" style="display:inline;"
+                        onsubmit="return confirm('Delete this API key permanently?')">
+                        <button class="btn btn-danger btn-sm">Delete</button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- API Access Scopes -->
+      <div id="section-api-access" class="card settings-section" style="display: none;">
+        <div class="card-header">🔌 Shopify API Access Scopes</div>
+        <div class="card-body">
+          <p style="margin-bottom: 16px; color: var(--text-muted);">
+            These are the Shopify API scopes currently granted to Ultra Matrix:
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <% const scopes = (shop.scopes || 'read_content,write_content').split(','); %>
+            <% scopes.forEach(scope => { %>
+              <span class="badge badge-completed"><%= scope.trim() %></span>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showSection(id, el) {
+  document.querySelectorAll('.settings-section').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.settings-nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('section-' + id).style.display = 'block';
+  el.classList.add('active');
+}
+
+// Handle URL hash
+if (window.location.hash) {
+  const section = window.location.hash.slice(1);
+  const link = document.querySelector('.settings-nav a[href="#' + section + '"]');
+  if (link) showSection(section, link);
+}
+
+// Show new key alert if present
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('newKey')) {
+  const keySection = document.querySelector('.settings-nav a[href="#api-keys"]');
+  showSection('api-keys', keySection);
+  const alertDiv = document.createElement('div');
+  alertDiv.className = 'alert alert-success';
+  alertDiv.innerHTML = '<strong>New API Key Created!</strong> Copy it now - it won\'t be shown again:<br><br>' +
+    '<div class="api-key-display">' + urlParams.get('newKey') +
+    '<button class="copy-btn" onclick="navigator.clipboard.writeText(\'' + urlParams.get('newKey') + '\');this.textContent=\'Copied!\'">Copy</button></div>';
+  document.getElementById('section-api-keys').querySelector('.card-body').prepend(alertDiv);
+}
+if (urlParams.get('saved')) {
+  // Show saved message
+}
+</script>
+
+<%- include('partials/layout-bottom') %>

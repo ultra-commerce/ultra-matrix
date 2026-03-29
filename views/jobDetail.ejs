@@ -1,0 +1,104 @@
+<%- include('partials/layout-top', { page: 'jobs', pageTitle: 'Job Details', shopDomain }) %>
+
+<div class="page-header">
+  <h2>Job #<%= job.id.slice(0, 8) %></h2>
+  <div style="display: flex; gap: 8px;">
+    <% if (job.status === 'processing') { %>
+      <form action="/jobs/<%= job.id %>/cancel" method="POST" style="display: inline;">
+        <button type="submit" class="btn btn-danger btn-sm">Cancel Job</button>
+      </form>
+    <% } %>
+    <% if (job.resultFilePath) { %>
+      <a href="/jobs/<%= job.id %>/results" class="btn btn-outline btn-sm">Download Results</a>
+    <% } %>
+    <a href="/jobs" class="btn btn-outline btn-sm">Back to Jobs</a>
+  </div>
+</div>
+
+<div class="page-body">
+  <!-- Job Status -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value"><span class="badge badge-<%= job.status %>" style="font-size: 16px;"><%= job.status %></span></div>
+      <div class="stat-label">Status</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value"><%= job.totalItems %></div>
+      <div class="stat-label">Total Items</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: var(--success);"><%= job.newItems %></div>
+      <div class="stat-label">New</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: var(--warning);"><%= job.updatedItems %></div>
+      <div class="stat-label">Updated</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" style="color: var(--danger);"><%= job.failedItems %></div>
+      <div class="stat-label">Failed</div>
+    </div>
+  </div>
+
+  <% if (job.status === 'processing' && job.totalItems > 0) { %>
+    <div class="card">
+      <div class="card-body">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+          <span>Progress</span>
+          <span><%= Math.round((job.processedItems / job.totalItems) * 100) %>%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: <%= Math.round((job.processedItems / job.totalItems) * 100) %>%"></div>
+        </div>
+        <div style="text-align: center; margin-top: 8px; color: var(--text-muted); font-size: 13px;">
+          <%= job.processedItems %> of <%= job.totalItems %> processed
+        </div>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Job Details -->
+  <div class="card">
+    <div class="card-header">Details</div>
+    <div class="card-body">
+      <table>
+        <tr><td style="width: 180px; font-weight: 600;">Job ID</td><td class="mono"><%= job.id %></td></tr>
+        <tr><td style="font-weight: 600;">Type</td><td><%= job.type %></td></tr>
+        <tr><td style="font-weight: 600;">Resource</td><td><%= job.resourceType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %></td></tr>
+        <tr><td style="font-weight: 600;">File Name</td><td><%= job.fileName || '-' %></td></tr>
+        <tr><td style="font-weight: 600;">Triggered By</td><td><%= job.triggeredBy %></td></tr>
+        <tr><td style="font-weight: 600;">Created</td><td><%= new Date(job.createdAt).toLocaleString() %></td></tr>
+        <% if (job.startedAt) { %>
+          <tr><td style="font-weight: 600;">Started</td><td><%= new Date(job.startedAt).toLocaleString() %></td></tr>
+        <% } %>
+        <% if (job.completedAt) { %>
+          <tr><td style="font-weight: 600;">Completed</td><td><%= new Date(job.completedAt).toLocaleString() %></td></tr>
+        <% } %>
+        <% if (job.duration) { %>
+          <tr><td style="font-weight: 600;">Duration</td><td><%= job.duration %> seconds</td></tr>
+        <% } %>
+      </table>
+    </div>
+  </div>
+
+  <!-- Errors -->
+  <% if (job.errors && job.errors.length > 0) { %>
+    <div class="card">
+      <div class="card-header" style="color: var(--danger);">Errors (<%= job.errors.length %>)</div>
+      <div class="card-body">
+        <% job.errors.forEach(err => { %>
+          <div class="alert alert-danger" style="margin-bottom: 8px;"><%= err %></div>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<% if (job.status === 'processing') { %>
+<script>
+  // Auto-refresh while processing
+  setTimeout(() => window.location.reload(), 3000);
+</script>
+<% } %>
+
+<%- include('partials/layout-bottom') %>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultra Matrix - <%= typeof pageTitle !== 'undefined' ? pageTitle : 'Shopify Bulk Import' %></title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h1>⚡ Ultra Matrix</h1>
+      <div class="shop-name"><%= typeof shopDomain !== 'undefined' ? shopDomain : '' %></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/" class="<%= page === 'home' ? 'active' : '' %>">
+        <span class="nav-icon">🏠</span> Ultra Matrix
+      </a>
+      <a href="/jobs" class="<%= page === 'jobs' ? 'active' : '' %>">
+        <span class="nav-icon">📋</span> All Jobs
+      </a>
+      <a href="/settings" class="<%= page === 'settings' ? 'active' : '' %>">
+        <span class="nav-icon">⚙️</span> Settings
+      </a>
+      <a href="/plan" class="<%= page === 'plan' ? 'active' : '' %>">
+        <span class="nav-icon">💎</span> Plan
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      Ultra Matrix v1.0.0
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">

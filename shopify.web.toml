@@ -1,0 +1,10 @@
+# Ultra Matrix - Web Process Configuration
+# Tells Shopify CLI how to start our Express server
+# Our Express app serves both HTML pages (frontend) and API (backend)
+
+name = "ultra-matrix"
+roles = ["frontend", "backend"]
+
+[commands]
+dev = "node server.js"
+build = ""

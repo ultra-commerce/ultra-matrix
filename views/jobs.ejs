@@ -1,0 +1,113 @@
+<%- include('partials/layout-top', { page: 'jobs', pageTitle: 'All Jobs', shopDomain }) %>
+
+<div class="page-header">
+  <h2>All Jobs - Page <%= pagination.current %></h2>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <a href="/" class="btn btn-outline btn-sm">Back</a>
+  </div>
+</div>
+
+<div class="page-body">
+  <!-- Filter Bar -->
+  <div class="card">
+    <div class="card-body" style="padding: 12px 20px;">
+      <form method="GET" action="/jobs" style="display: flex; gap: 12px; align-items: center;">
+        <input type="text" name="filter" class="form-control" placeholder="Filter by ID or File Name" value="<%= filter %>" style="flex: 1;">
+        <select name="status" class="form-control" style="width: 160px;">
+          <option value="">All Statuses</option>
+          <option value="pending" <%= statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+          <option value="processing" <%= statusFilter === 'processing' ? 'selected' : '' %>>Processing</option>
+          <option value="completed" <%= statusFilter === 'completed' ? 'selected' : '' %>>Completed</option>
+          <option value="failed" <%= statusFilter === 'failed' ? 'selected' : '' %>>Failed</option>
+          <option value="cancelled" <%= statusFilter === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+        </select>
+        <button type="submit" class="btn btn-outline">Filter</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Import Form -->
+  <div class="card">
+    <div class="card-header">New Import</div>
+    <div class="card-body">
+      <form action="/jobs/import" method="POST" enctype="multipart/form-data">
+        <div style="display: flex; gap: 16px; align-items: end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Resource Type</label>
+            <select name="resourceType" class="form-control">
+              <option value="blog_posts">Blog Posts</option>
+              <option value="pages">Pages</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label>CSV File</label>
+            <input type="file" name="csvFile" class="form-control" accept=".csv,.tsv,.txt" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Import</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Jobs List -->
+  <div class="card">
+    <% if (jobs.length === 0) { %>
+      <div class="card-body" style="text-align: center; color: var(--text-muted); padding: 60px;">
+        <div style="font-size: 48px; margin-bottom: 12px;">📋</div>
+        No jobs found. Upload a CSV to start your first import!
+      </div>
+    <% } else { %>
+      <% jobs.forEach(job => { %>
+        <a href="/jobs/<%= job.id %>" style="text-decoration: none; color: inherit;">
+          <div class="job-row">
+            <div class="job-icon"><%= job.type === 'import' ? '📥' : '📤' %></div>
+            <div class="job-info">
+              <div class="job-title">
+                <%= job.resourceType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) %>
+              </div>
+              <div class="job-meta">
+                <span class="mono">#<%= job.id.slice(0, 8) %></span> &middot;
+                <%= new Date(job.createdAt).toLocaleString() %>
+                <% if (job.duration) { %>&middot; Duration: <%= job.duration %> sec<% } %>
+              </div>
+            </div>
+            <div class="job-stats">
+              <% if (job.totalItems > 0) { %>
+                <span style="font-size: 14px; font-weight: 600;"><%= job.processedItems + job.failedItems %></span>
+              <% } %>
+              <% if (job.newItems > 0) { %><span class="badge badge-new">New: <%= job.newItems %></span><% } %>
+              <% if (job.updatedItems > 0) { %><span class="badge badge-updated">Updated: <%= job.updatedItems %></span><% } %>
+              <% if (job.failedItems > 0) { %><span class="badge badge-failed">Failed: <%= job.failedItems %></span><% } %>
+            </div>
+            <div class="job-right">
+              <span class="badge badge-<%= job.status %>"><%= job.status %></span>
+              <% if (job.fileName) { %>
+                <div class="job-file"><%= job.fileName %></div>
+              <% } %>
+              <% if (job.triggeredBy !== 'manual') { %>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">via <%= job.triggeredBy %></div>
+              <% } %>
+            </div>
+          </div>
+        </a>
+      <% }) %>
+
+      <!-- Pagination -->
+      <% if (pagination.total > 1) { %>
+        <div style="padding: 16px 20px; display: flex; justify-content: center; gap: 8px;">
+          <% if (pagination.current > 1) { %>
+            <a href="/jobs?page=<%= pagination.current - 1 %>&filter=<%= filter %>&status=<%= statusFilter %>" class="btn btn-outline btn-sm">Previous</a>
+          <% } %>
+          <span style="padding: 4px 12px; font-size: 13px; color: var(--text-muted);">
+            Page <%= pagination.current %> of <%= pagination.total %>
+          </span>
+          <% if (pagination.current < pagination.total) { %>
+            <a href="/jobs?page=<%= pagination.current + 1 %>&filter=<%= filter %>&status=<%= statusFilter %>" class="btn btn-outline btn-sm">Next</a>
+          <% } %>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</div>
+
+<%- include('partials/layout-bottom') %>

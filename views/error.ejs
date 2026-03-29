@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultra Matrix - Error</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="install-page">
+  <div class="install-card">
+    <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
+    <h1>Something went wrong</h1>
+    <p><%= typeof message !== 'undefined' ? message : 'An unexpected error occurred.' %></p>
+    <a href="/" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 16px;">
+      Go to Dashboard
+    </a>
+    <% if (typeof error !== 'undefined' && error.stack) { %>
+      <pre style="text-align: left; font-size: 11px; margin-top: 20px; padding: 12px; background: #f4f6f8; border-radius: 6px; overflow-x: auto; max-height: 200px;"><%= error.stack %></pre>
+    <% } %>
+  </div>
+</div>
+</body>
+</html>
