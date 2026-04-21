@@ -65,7 +65,6 @@ function verifyWebhookHmac(body, hmacHeader) {
     return false;
   }
 }
-
 /**
  * Verify session token from Shopify App Bridge (for embedded apps)
  * Decodes the JWT and verifies the shop
@@ -150,6 +149,27 @@ async function verifyShopifySession(req, res, next) {
     const shop = await Shop.withSettings(shopDomain);
 
     if (!shop) {
+      // If we're in an embedded iframe, we can't redirect to OAuth directly
+      // because accounts.shopify.com sets X-Frame-Options: DENY.
+      // Instead, break out of the iframe with a top-level redirect.
+      const isEmbedded = req.query.embedded === '1' || req.query.host;
+      if (isEmbedded) {
+        const { url } = buildAuthUrl(shopDomain);
+        return res.send(`
+          <!DOCTYPE html>
+          <html><head><title>Redirecting...</title></head>
+          <body>
+            <script>
+              if (window.top !== window.self) {
+                window.top.location.href = "${url}";
+              } else {
+                window.location.href = "${url}";
+              }
+            </script>
+            <p>Redirecting to Shopify for authorization...</p>
+          </body></html>
+        `);
+      }
       return res.redirect(`/auth?shop=${shopDomain}`);
     }
 
