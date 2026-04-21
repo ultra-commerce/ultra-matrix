@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Shop {
+  id              String        @id @default(uuid())
+  shopDomain      String        @unique
+  accessToken     String
+  scopes          String?
+  installedAt     DateTime      @default(now())
+  plan            String        @default("free")
+  planExpiresAt   DateTime?
+  chargeId        String?       // Shopify recurring charge ID
+  jobs            Job[]
+  settings        ShopSettings?
+  apiKeys         ApiKey[]
+  sessions        Session[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model ShopSettings {
+  id                    String   @id @default(uuid())
+  shopId                String   @unique
+  shop                  Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  allowExternalDownload Boolean  @default(false)
+  notifyOnComplete      Boolean  @default(true)
+  notifyEmail           String?
+  defaultBlogHandle     String   @default("news")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Job {
+  id              String    @id @default(uuid())
+  shopId          String
+  shop            Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  type            String    // "import" or "export"
+  resourceType    String    // "blog_posts", "pages", "products", "customers", "orders", etc.
+  status          String    @default("pending") // pending, queued, processing, completed, failed, cancelled
+  fileName        String?
+  filePath        String?
+  totalItems      Int       @default(0)
+  processedItems  Int       @default(0)
+  newItems        Int       @default(0)
+  updatedItems    Int       @default(0)
+  failedItems     Int       @default(0)
+  skippedItems    Int       @default(0)
+  errors          String?   // JSON array of error messages
+  resultFilePath  String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  duration        Int?      // duration in seconds
+  triggeredBy     String    @default("manual") // "manual", "api", "scheduled"
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([shopId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  shopId      String
+  shop        Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  name        String
+  key         String    @unique
+  lastUsedAt  DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([shopId])
+}
+
+model Session {
+  id          String   @id
+  shopId      String
+  shop        Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  state       String?
+  isOnline    Boolean  @default(false)
+  accessToken String?
+  expires     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([shopId])
+}

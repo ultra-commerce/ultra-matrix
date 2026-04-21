@@ -6,6 +6,27 @@
 </div>
 
 <div class="page-body">
+  <!-- Status Messages -->
+  <% if (typeof changed !== 'undefined' && changed) { %>
+    <div class="alert alert-success">
+      <% if (changed === 'free') { %>
+        You've been switched to the Free plan.
+      <% } else { %>
+        Successfully upgraded to the <strong><%= changed.charAt(0).toUpperCase() + changed.slice(1) %></strong> plan!
+      <% } %>
+    </div>
+  <% } %>
+  <% if (typeof declined !== 'undefined' && declined) { %>
+    <div class="alert alert-warning">
+      The charge was declined. You remain on your current plan.
+    </div>
+  <% } %>
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="alert alert-danger">
+      Something went wrong with billing. Please try again.
+    </div>
+  <% } %>
+
   <!-- Current Plan Banner -->
   <div class="card">
     <div class="card-body" style="text-align: center; padding: 24px;">
@@ -16,17 +37,16 @@
         <% } else if (shop.plan === 'basic') { %>
           You are enjoying standard import limits.
         <% } else if (shop.plan === 'big') { %>
-          You are enjoying very large limits per job, and have 5x speed.
+          You have very large limits per job, and 5x speed.
         <% } else { %>
           You have unlimited imports with maximum speed.
         <% } %>
       </p>
-      <% if (shop.planExpiresAt) { %>
-        <p style="font-size: 13px; color: var(--text-muted); margin-top: 8px;">
-          Plan expires at: <%= new Date(shop.planExpiresAt).toLocaleString() %>
-        </p>
+      <% if (shop.plan && shop.plan !== 'free') { %>
+        <form action="/billing/cancel" method="POST" style="margin-top: 12px;" onsubmit="return confirm('Are you sure you want to cancel your subscription? You will be downgraded to the Free plan.')">
+          <button type="submit" class="btn btn-outline btn-sm">Cancel Subscription</button>
+        </form>
       <% } %>
-      <p style="margin-top: 8px;"><a href="#">Read more about Pricing</a></p>
     </div>
   </div>
 
@@ -45,7 +65,6 @@
         <li><span>Blog Posts</span><span>10</span></li>
         <li><span>Redirects</span><span>10</span></li>
         <li><span>Orders</span><span>10</span></li>
-        <li><span>Metaobjects</span><span>10</span></li>
       </ul>
       <% if (!shop.plan || shop.plan === 'free') { %>
         <span class="badge badge-completed">Current Plan</span>
@@ -71,7 +90,10 @@
       <% if (shop.plan === 'basic') { %>
         <span class="badge badge-completed">Current Plan</span>
       <% } else { %>
-        <button class="btn btn-primary" style="width: 100%;">Select Basic</button>
+        <form action="/billing/subscribe" method="POST">
+          <input type="hidden" name="plan" value="basic">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Select Basic</button>
+        </form>
       <% } %>
     </div>
 
@@ -95,7 +117,10 @@
       <% if (shop.plan === 'big') { %>
         <span class="badge badge-completed">Current Plan</span>
       <% } else { %>
-        <button class="btn btn-primary" style="width: 100%;">Select Big</button>
+        <form action="/billing/subscribe" method="POST">
+          <input type="hidden" name="plan" value="big">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Select Big</button>
+        </form>
       <% } %>
     </div>
 
@@ -120,7 +145,10 @@
       <% if (shop.plan === 'enterprise') { %>
         <span class="badge badge-completed">Current Plan</span>
       <% } else { %>
-        <button class="btn btn-primary" style="width: 100%;">Select Enterprise</button>
+        <form action="/billing/subscribe" method="POST">
+          <input type="hidden" name="plan" value="enterprise">
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Select Enterprise</button>
+        </form>
       <% } %>
     </div>
   </div>

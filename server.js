@@ -4,8 +4,9 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
+const logger = require('./src/utils/logger');
 
-const { verifyShopifySession } = require('./src/middleware/auth');
+const { verifyShopifySession, ensureEmbedded, getApiKey } = require('./src/middleware/auth');
 const { verifyApiKey } = require('./src/middleware/apiAuth');
 const dashboardRoutes = require('./src/routes/dashboard');
 const jobRoutes = require('./src/routes/jobs');
@@ -13,19 +14,13 @@ const settingsRoutes = require('./src/routes/settings');
 const apiRoutes = require('./src/routes/api');
 const authRoutes = require('./src/routes/auth');
 const webhookRoutes = require('./src/routes/webhooks');
+const billingRoutes = require('./src/routes/billing');
+const { startWorker, shutdown } = require('./src/services/jobQueue');
 
 const app = express();
-
-// Shopify CLI sets PORT for frontend role, BACKEND_PORT for backend role
 const PORT = process.env.PORT || process.env.BACKEND_PORT || 3000;
 
-// Shopify CLI also sets these automatically:
-// SHOPIFY_API_KEY (same as client_id from dev dashboard)
-// SHOPIFY_API_SECRET (same as secret from dev dashboard)
-// SCOPES
-// HOST (the Cloudflare tunnel URL)
-
-// Trust proxy (for Cloudflare tunnel)
+// Trust proxy (Railway, Cloudflare)
 app.set('trust proxy', 1);
 
 // View engine
@@ -48,47 +43,96 @@ app.use(fileUpload({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Health check (for Railway/load balancer)
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', version: '2.0.0', uptime: process.uptime() });
+});
+
 // Auth routes (no session required)
 app.use('/auth', authRoutes);
 
-// Webhook routes
+// Webhook routes (no session required, uses HMAC verification)
 app.use('/webhooks', webhookRoutes);
 
 // Agent API routes (API key auth)
 app.use('/api/v1', verifyApiKey, apiRoutes);
 
-// Dashboard routes (Shopify session auth)
+// Billing routes (Shopify session auth)
+app.use('/billing', verifyShopifySession, billingRoutes);
+
+// App routes (Shopify session auth)
 app.use('/', verifyShopifySession, dashboardRoutes);
 app.use('/jobs', verifyShopifySession, jobRoutes);
 app.use('/settings', verifyShopifySession, settingsRoutes);
 
+// Content Security Policy for embedded app
+app.use((req, res, next) => {
+  const shopDomain = req.shopDomain || req.query.shop;
+  if (shopDomain) {
+    res.setHeader(
+      'Content-Security-Policy',
+      `frame-ancestors https://${shopDomain} https://admin.shopify.com;`
+    );
+  }
+  next();
+});
+
 // Error handler
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  logger.error('Unhandled error:', err);
   if (req.path.startsWith('/api/')) {
     return res.status(err.status || 500).json({
       error: err.message || 'Internal server error',
-      code: err.code || 'INTERNAL_ERROR'
+      code: err.code || 'INTERNAL_ERROR',
     });
   }
   res.status(err.status || 500).render('error', {
     message: err.message || 'Something went wrong',
-    error: process.env.NODE_ENV === 'development' ? err : {}
+    error: process.env.NODE_ENV === 'development' ? err : {},
   });
 });
 
-app.listen(PORT, () => {
+// Start server and job queue worker
+const server = app.listen(PORT, () => {
   const host = process.env.HOST || `http://localhost:${PORT}`;
-  console.log(`
-╔══════════════════════════════════════════════════════╗
-║              Ultra Matrix - Shopify App              ║
-║──────────────────────────────────────────────────────║
-║  Server running on port ${PORT}                         ║
-║  Local:     http://localhost:${PORT}                    ║
-║  Public:    ${host.padEnd(40)}║
-║  API:       ${(host + '/api/v1').padEnd(40)}║
-╚══════════════════════════════════════════════════════╝
+  logger.info(`
+╔══════════════════════════════════════════════════════════╗
+║              Ultra Matrix v2.0 - Shopify SaaS App        ║
+║──────────────────────────────────────────────────────────║
+║  Server:    http://localhost:${PORT}                         ║
+║  Public:    ${host.padEnd(44)}║
+║  API:       ${(host + '/api/v1').padEnd(44)}║
+║  Database:  PostgreSQL (Prisma)                          ║
+║  Queue:     BullMQ + Redis                               ║
+╚══════════════════════════════════════════════════════════╝
   `);
+});
+
+// Start the job queue worker
+try {
+  startWorker();
+  logger.info('Job queue worker started');
+} catch (err) {
+  logger.error('Failed to start job queue worker:', err.message);
+  logger.warn('Jobs will not process until Redis is available');
+}
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, shutting down...');
+  await shutdown();
+  server.close(() => {
+    logger.info('Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, shutting down...');
+  await shutdown();
+  server.close(() => {
+    process.exit(0);
+  });
 });
 
 module.exports = app;

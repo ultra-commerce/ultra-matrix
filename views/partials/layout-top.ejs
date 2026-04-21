@@ -3,8 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ultra Matrix - <%= typeof pageTitle !== 'undefined' ? pageTitle : 'Shopify Bulk Import' %></title>
+  <title>Ultra Matrix - <%= typeof pageTitle !== 'undefined' ? pageTitle : 'Shopify Bulk Import/Export' %></title>
   <link rel="stylesheet" href="/css/style.css">
+  <% if (typeof shopDomain !== 'undefined' && shopDomain) { %>
+  <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
+  <script>
+    // Initialize Shopify App Bridge for embedded app
+    if (window.shopify) {
+      // App Bridge 4.x auto-initializes when loaded from Shopify admin
+      console.log('App Bridge loaded');
+    }
+  </script>
+  <% } %>
 </head>
 <body>
 <div class="app-layout">
@@ -29,7 +39,7 @@
       </a>
     </nav>
     <div class="sidebar-footer">
-      Ultra Matrix v1.0.0
+      Ultra Matrix v2.0.0
     </div>
   </aside>
 

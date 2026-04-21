@@ -16,6 +16,7 @@
         <select name="status" class="form-control" style="width: 160px;">
           <option value="">All Statuses</option>
           <option value="pending" <%= statusFilter === 'pending' ? 'selected' : '' %>>Pending</option>
+          <option value="queued" <%= statusFilter === 'queued' ? 'selected' : '' %>>Queued</option>
           <option value="processing" <%= statusFilter === 'processing' ? 'selected' : '' %>>Processing</option>
           <option value="completed" <%= statusFilter === 'completed' ? 'selected' : '' %>>Completed</option>
           <option value="failed" <%= statusFilter === 'failed' ? 'selected' : '' %>>Failed</option>
@@ -37,6 +38,12 @@
             <select name="resourceType" class="form-control">
               <option value="blog_posts">Blog Posts</option>
               <option value="pages">Pages</option>
+              <option value="products">Products</option>
+              <option value="customers">Customers</option>
+              <option value="orders">Orders</option>
+              <option value="redirects">Redirects</option>
+              <option value="custom_collections">Custom Collections</option>
+              <option value="smart_collections">Smart Collections</option>
             </select>
           </div>
           <div class="form-group" style="flex: 1; margin-bottom: 0;">
@@ -44,6 +51,31 @@
             <input type="file" name="csvFile" class="form-control" accept=".csv,.tsv,.txt" required>
           </div>
           <button type="submit" class="btn btn-primary">Import</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Export Form -->
+  <div class="card">
+    <div class="card-header">New Export</div>
+    <div class="card-body">
+      <form action="/jobs/export" method="POST">
+        <div style="display: flex; gap: 16px; align-items: end;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label>Resource Type</label>
+            <select name="resourceType" class="form-control">
+              <option value="blog_posts">Blog Posts</option>
+              <option value="pages">Pages</option>
+              <option value="products">Products</option>
+              <option value="customers">Customers</option>
+              <option value="orders">Orders</option>
+              <option value="redirects">Redirects</option>
+              <option value="custom_collections">Custom Collections</option>
+              <option value="smart_collections">Smart Collections</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-outline">Export to CSV</button>
         </div>
       </form>
     </div>
@@ -67,6 +99,7 @@
               </div>
               <div class="job-meta">
                 <span class="mono">#<%= job.id.slice(0, 8) %></span> &middot;
+                <%= job.type %> &middot;
                 <%= new Date(job.createdAt).toLocaleString() %>
                 <% if (job.duration) { %>&middot; Duration: <%= job.duration %> sec<% } %>
               </div>

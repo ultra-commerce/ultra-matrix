@@ -203,6 +203,7 @@ a:hover { text-decoration: underline; }
 .badge-completed { background: #d4edda; color: #155724; }
 .badge-failed { background: #f8d7da; color: #721c24; }
 .badge-cancelled { background: #e2e3e5; color: #383d41; }
+.badge-queued { background: #e8dff5; color: #563d7c; }
 .badge-new { background: #cce5ff; color: #004085; }
 .badge-updated { background: #fff3cd; color: #856404; }
 

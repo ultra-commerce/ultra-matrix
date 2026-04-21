@@ -2,7 +2,9 @@
 
 <div class="page-header">
   <h2>Ultra Matrix</h2>
-  <a href="/jobs" class="btn btn-primary">+ New Import</a>
+  <div style="display: flex; gap: 8px;">
+    <a href="/jobs" class="btn btn-primary">+ New Import</a>
+  </div>
 </div>
 
 <div class="page-body">
@@ -17,14 +19,22 @@
       <div class="stat-label">Completed</div>
     </div>
     <div class="stat-card">
-      <div class="stat-value"><%= stats.processingJobs %></div>
-      <div class="stat-label">Processing</div>
+      <div class="stat-value"><%= stats.queuedJobs + stats.processingJobs %></div>
+      <div class="stat-label">In Queue</div>
     </div>
     <div class="stat-card">
       <div class="stat-value"><%= stats.failedJobs %></div>
       <div class="stat-label">Failed</div>
     </div>
   </div>
+
+  <!-- Plan Badge -->
+  <% if (shop.plan && shop.plan !== 'free') { %>
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+      Current plan: <strong><%= plan.name %></strong> &mdash;
+      <a href="/plan">Manage plan</a>
+    </div>
+  <% } %>
 
   <!-- Quick Import -->
   <div class="card">
@@ -37,6 +47,12 @@
             <select name="resourceType" class="form-control">
               <option value="blog_posts">Blog Posts</option>
               <option value="pages">Pages</option>
+              <option value="products">Products</option>
+              <option value="customers">Customers</option>
+              <option value="orders">Orders</option>
+              <option value="redirects">Redirects</option>
+              <option value="custom_collections">Custom Collections</option>
+              <option value="smart_collections">Smart Collections</option>
             </select>
           </div>
         </div>
@@ -53,6 +69,31 @@
           <button type="submit" class="btn btn-success btn-lg" style="width: 100%;">
             Start Import
           </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Quick Export -->
+  <div class="card">
+    <div class="card-header">Quick Export</div>
+    <div class="card-body">
+      <form action="/jobs/export" method="POST">
+        <div style="display: flex; gap: 16px; align-items: end;">
+          <div class="form-group" style="flex: 1; margin-bottom: 0;">
+            <label>Resource Type</label>
+            <select name="resourceType" class="form-control">
+              <option value="blog_posts">Blog Posts</option>
+              <option value="pages">Pages</option>
+              <option value="products">Products</option>
+              <option value="customers">Customers</option>
+              <option value="orders">Orders</option>
+              <option value="redirects">Redirects</option>
+              <option value="custom_collections">Custom Collections</option>
+              <option value="smart_collections">Smart Collections</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary">Export to CSV</button>
         </div>
       </form>
     </div>
@@ -107,19 +148,17 @@
     <div class="card-header">Agent API Access</div>
     <div class="card-body">
       <p style="margin-bottom: 12px; color: var(--text-muted);">
-        Use the REST API to import content from Claude Cowork, OpenClaw, or any automation tool.
+        Use the REST API to import/export content from Claude Cowork, OpenClaw, or any automation tool.
       </p>
       <div class="api-key-display">
-        POST /api/v1/import<br>
-        Authorization: Bearer &lt;your-api-key&gt;<br><br>
-        // JSON body example:<br>
-        {<br>
-        &nbsp;&nbsp;"records": [{"Title": "My Post", "Body HTML": "&lt;p&gt;Hello&lt;/p&gt;", "Blog: Handle": "news"}],<br>
-        &nbsp;&nbsp;"resource_type": "blog_posts"<br>
-        }
+        POST /api/v1/import   — Import from CSV<br>
+        POST /api/v1/export   — Export to CSV<br>
+        GET  /api/v1/jobs     — List jobs<br>
+        GET  /api/v1/plan     — View plan &amp; limits<br><br>
+        Authorization: Bearer &lt;your-api-key&gt;
       </div>
       <p style="margin-top: 12px;">
-        <a href="/settings">Manage API keys in Settings</a> &middot;
+        <a href="/settings#api-keys">Manage API keys</a> &middot;
         <a href="/api/v1/docs" target="_blank">Full API docs</a>
       </p>
     </div>
