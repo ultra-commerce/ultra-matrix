@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Shop, ShopSettings } = require('../services/database');
-const { verifyHmac, buildAuthUrl, exchangeToken } = require('../middleware/auth');
+const { verifyHmac, buildAuthUrl, exchangeToken, getApiKey } = require('../middleware/auth');
 
 // GET /auth - Start OAuth flow
 router.get('/', (req, res) => {
@@ -15,6 +15,25 @@ router.get('/', (req, res) => {
 
   res.cookie('oauth_nonce', nonce, { httpOnly: true, sameSite: 'lax', maxAge: 600000 });
   console.log(`[AUTH] Redirecting to Shopify OAuth for ${shopDomain}`);
+
+  // If loaded inside an iframe, break out to top-level for OAuth
+  const isEmbedded = req.query.embedded === '1' || req.query.host;
+  if (isEmbedded) {
+    return res.send(`
+      <!DOCTYPE html>
+      <html><head><title>Redirecting...</title></head>
+      <body>
+        <script>
+          if (window.top !== window.self) {
+            window.top.location.href = "${url}";
+          } else {
+            window.location.href = "${url}";
+          }
+        </script>
+        <p>Redirecting to Shopify for authorization...</p>
+      </body></html>
+    `);
+  }
   res.redirect(url);
 });
 
@@ -49,16 +68,20 @@ router.get('/callback', async (req, res) => {
       defaultBlogHandle: 'news',
     });
 
-    // Set session cookie
+    // Set session cookie — use sameSite: 'none' + secure for embedded iframe context
     res.cookie('shopDomain', shop, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: 'none',
+      secure: true,
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
 
     res.clearCookie('oauth_nonce');
     console.log(`[AUTH] Successfully authenticated ${shop}`);
-    res.redirect('/');
+
+    // Redirect back into the Shopify admin embedded context
+    const apiKey = getApiKey();
+    res.redirect(`https://${shop}/admin/apps/${apiKey}`);
   } catch (error) {
     console.error('OAuth callback error:', error);
     res.status(500).send(`Authentication failed: ${error.message}`);
