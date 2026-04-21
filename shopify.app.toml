@@ -2,7 +2,7 @@
 
 client_id = "8f1681559f943fe4e3619d99a8b206c3"
 name = "Ultra Matrix"
-application_url = "https://ultra-matrix-production.up.railway.app"
+application_url = "https://hospitable-forgiveness-production-4c00.up.railway.app"
 embedded = true
 handle = "ultra-matrix-1"
 
@@ -10,15 +10,16 @@ handle = "ultra-matrix-1"
 api_version = "2024-10"
 
   [webhooks.privacy_compliance]
-  customer_deletion_url = "https://ultra-matrix-production.up.railway.app/webhooks/customers/redact"
-  customer_data_request_url = "https://ultra-matrix-production.up.railway.app/webhooks/customers/data_request"
-  shop_deletion_url = "https://ultra-matrix-production.up.railway.app/webhooks/shop/redact"
+    customer_deletion_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/customers/redact"
+      customer_data_request_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/customers/data_request"
+        shop_deletion_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/shop/redact"
 
-[access_scopes]
-scopes = "read_content,write_content,read_themes,write_themes,read_products,write_products,read_customers,write_customers,read_orders,write_orders"
+        [access_scopes]
+        scopes = "read_content,write_content,read_themes,write_themes,read_products,write_products,read_customers,write_customers,read_orders,write_orders"
 
-[auth]
-redirect_urls = [ "https://ultra-matrix-production.up.railway.app/auth/callback" ]
+        [auth]
+        redirect_urls = [ "https://hospitable-forgiveness-production-4c00.up.railway.app/auth/callback" ]
 
-[build]
-automatically_update_urls_on_dev = true
+        [build]
+        automatically_update_urls_on_dev = true
+        
