@@ -43,6 +43,24 @@ app.use(fileUpload({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Content Security Policy for embedded app — MUST be before routes
+app.use((req, res, next) => {
+  const shopDomain = req.query.shop || req.cookies?.shopDomain;
+  if (shopDomain) {
+    res.setHeader(
+      'Content-Security-Policy',
+      `frame-ancestors https://${shopDomain} https://admin.shopify.com;`
+    );
+  } else {
+    // Allow Shopify admin to frame the app during initial load
+    res.setHeader(
+      'Content-Security-Policy',
+      `frame-ancestors https://admin.shopify.com https://*.myshopify.com;`
+    );
+  }
+  next();
+});
+
 // Health check (for Railway/load balancer)
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', version: '2.0.0', uptime: process.uptime() });
@@ -65,17 +83,7 @@ app.use('/', verifyShopifySession, dashboardRoutes);
 app.use('/jobs', verifyShopifySession, jobRoutes);
 app.use('/settings', verifyShopifySession, settingsRoutes);
 
-// Content Security Policy for embedded app
-app.use((req, res, next) => {
-  const shopDomain = req.shopDomain || req.query.shop;
-  if (shopDomain) {
-    res.setHeader(
-      'Content-Security-Policy',
-      `frame-ancestors https://${shopDomain} https://admin.shopify.com;`
-    );
-  }
-  next();
-});
+// (CSP middleware moved above routes)
 
 // Error handler
 app.use((err, req, res, next) => {
