@@ -43,6 +43,34 @@ app.use(fileUpload({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Override res.redirect to always include ?shop= for embedded iframe support
+app.use((req, res, next) => {
+  const origRedirect = res.redirect.bind(res);
+  res.redirect = function(statusOrUrl, url) {
+    let status, target;
+    if (typeof statusOrUrl === 'number') {
+      status = statusOrUrl;
+      target = url;
+    } else {
+      status = 302;
+      target = statusOrUrl;
+    }
+    // Append ?shop= if it's a local redirect and shop is known
+    const shopDomain = req.shopDomain || req.query.shop || req.body?.shop || req.cookies?.shopDomain;
+    if (shopDomain && target && !target.startsWith('http')) {
+      try {
+        const u = new URL(target, 'http://localhost');
+        if (!u.searchParams.has('shop')) {
+          u.searchParams.set('shop', shopDomain);
+          target = u.pathname + u.search + u.hash;
+        }
+      } catch(e) {}
+    }
+    return origRedirect(status, target);
+  };
+  next();
+});
+
 // Content Security Policy for embedded app — MUST be before routes
 app.use((req, res, next) => {
   const shopDomain = req.query.shop || req.cookies?.shopDomain;
@@ -110,7 +138,7 @@ const server = app.listen(PORT, () => {
 ║  Server:    http://localhost:${PORT}                         ║
 ║  Public:    ${host.padEnd(44)}║
 ║  API:       ${(host + '/api/v1').padEnd(44)}║
-║  Database:  PostgreSQL (Prisma)                          ║
+║  Database:  PostgreSQL (Prisma)                           ║
 ║  Queue:     BullMQ + Redis                               ║
 ╚══════════════════════════════════════════════════════════╝
   `);

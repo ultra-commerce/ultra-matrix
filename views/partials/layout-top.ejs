@@ -15,6 +15,9 @@
     }
   </script>
   <% } %>
+  <% if (typeof shopDomain !== 'undefined' && shopDomain) { %>
+  <script>window.__shopDomain = '<%= shopDomain %>';</script>
+  <% } %>
 </head>
 <body>
 <div class="app-layout">
@@ -25,16 +28,16 @@
       <div class="shop-name"><%= typeof shopDomain !== 'undefined' ? shopDomain : '' %></div>
     </div>
     <nav class="sidebar-nav">
-      <a href="/" class="<%= page === 'home' ? 'active' : '' %>">
+      <a href="/?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'home' ? 'active' : '' %>">
         <span class="nav-icon">🏠</span> Ultra Matrix
       </a>
-      <a href="/jobs" class="<%= page === 'jobs' ? 'active' : '' %>">
+      <a href="/jobs?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'jobs' ? 'active' : '' %>">
         <span class="nav-icon">📋</span> All Jobs
       </a>
-      <a href="/settings" class="<%= page === 'settings' ? 'active' : '' %>">
+      <a href="/settings?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'settings' ? 'active' : '' %>">
         <span class="nav-icon">⚙️</span> Settings
       </a>
-      <a href="/plan" class="<%= page === 'plan' ? 'active' : '' %>">
+      <a href="/plan?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'plan' ? 'active' : '' %>">
         <span class="nav-icon">💎</span> Plan
       </a>
     </nav>

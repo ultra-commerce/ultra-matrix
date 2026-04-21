@@ -2,5 +2,56 @@
 </div>
 
 <script src="/js/app.js"></script>
+<script>
+// Rewrite all internal links and forms to include ?shop= for embedded iframe support
+(function() {
+  var shop = window.__shopDomain;
+  if (!shop) return;
+
+  function ensureShopParam(urlStr) {
+    try {
+      var url = new URL(urlStr, window.location.origin);
+      if (url.origin === window.location.origin && !url.searchParams.has('shop')) {
+        url.searchParams.set('shop', shop);
+        return url.toString();
+      }
+    } catch(e) {}
+    return urlStr;
+  }
+
+  // Catch all link clicks
+  document.addEventListener('click', function(e) {
+    var a = e.target.closest('a');
+    if (a && a.href && !a.href.startsWith('javascript:') && !a.href.startsWith('#')) {
+      a.href = ensureShopParam(a.href);
+    }
+  }, true);
+
+  // Catch all form submissions
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (form.action) {
+      form.action = ensureShopParam(form.action);
+    }
+    // Also add hidden input as fallback
+    if (!form.querySelector('input[name="shop"]')) {
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'shop';
+      input.value = shop;
+      form.appendChild(input);
+    }
+  }, true);
+
+  // Fix auto-refresh URLs (e.g., jobDetail processing page)
+  var origReload = window.location.reload.bind(window.location);
+  // Ensure current URL has shop param
+  if (!new URLSearchParams(window.location.search).has('shop')) {
+    var newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('shop', shop);
+    window.history.replaceState(null, '', newUrl.toString());
+  }
+})();
+</script>
 </body>
 </html>
