@@ -1,7 +1,5 @@
 #!/bin/bash
-# Push Ultra Matrix v2 to GitHub
-# This script removes stale git lock files, commits all changes, and pushes
-
+# Push Ultra Matrix v2 to GitHub (with token auth)
 cd "$(dirname "$0")"
 echo "==============================="
 echo "Ultra Matrix - Push to GitHub"
@@ -35,12 +33,15 @@ git commit -m "Ultra Matrix v2.0 - SaaS Shopify App
 - App Store ready with proper scopes, webhooks, and GDPR compliance"
 echo ""
 
-# Step 4: Update remote and push
+# Step 4: Push using token auth
 echo "[4/4] Pushing to GitHub..."
-git remote set-url origin https://github.com/ultra-commerce/ultra-matrix.git
+git remote set-url origin https://ultra-commerce:ghp_MfAH0n8Yzqdm9809D0PVFbiRcCR2mX4c5EYN@github.com/ultra-commerce/ultra-matrix.git
 git branch -M main
 git push -u origin main --force
 echo ""
+
+# Clean up: remove token from remote URL after push
+git remote set-url origin https://github.com/ultra-commerce/ultra-matrix.git
 
 echo "==============================="
 echo "Done! Check https://github.com/ultra-commerce/ultra-matrix"
