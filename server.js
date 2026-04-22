@@ -43,6 +43,12 @@ app.use(fileUpload({
 }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Make API key available to all templates (needed for App Bridge meta tag)
+app.use((req, res, next) => {
+  res.locals.apiKey = getApiKey();
+  next();
+});
+
 // Override res.redirect to always include ?shop= for embedded iframe support
 app.use((req, res, next) => {
   const origRedirect = res.redirect.bind(res);
