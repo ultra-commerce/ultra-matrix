@@ -71,7 +71,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Content Security Policy for embedded app — MUST be before routes
+// Content Security Policy for embedded app â MUST be before routes
 app.use((req, res, next) => {
   const shopDomain = req.query.shop || req.cookies?.shopDomain;
   if (shopDomain) {
@@ -99,6 +99,26 @@ app.use('/auth', authRoutes);
 
 // Webhook routes (no session required, uses HMAC verification)
 app.use('/webhooks', webhookRoutes);
+
+// Admin: direct plan override (API key auth, bypasses Shopify billing)
+app.get('/admin/set-plan', async (req, res) => {
+  const { key, shop, plan } = req.query;
+  if (!key || key !== process.env.ULTRA_MATRIX_API_KEY) {
+    return res.status(401).json({ error: 'Invalid API key' });
+  }
+  const { PLANS } = require('./src/services/billing');
+  if (!plan || !PLANS[plan]) {
+    return res.status(400).json({ error: 'Invalid plan', validPlans: Object.keys(PLANS) });
+  }
+  const { Shop: ShopModel } = require('./src/services/database');
+  const shopDomain = shop || 'ultra-matrix-demo.myshopify.com';
+  const shopRecord = await ShopModel.findUnique(shopDomain);
+  if (!shopRecord) {
+    return res.status(404).json({ error: 'Shop not found', shopDomain });
+  }
+  await ShopModel.update(shopRecord.id, { plan, chargeId: null, planExpiresAt: null });
+  res.json({ success: true, shop: shopDomain, plan, message: `Plan set to ${plan}` });
+});
 
 // Agent API routes (API key auth)
 app.use('/api/v1', verifyApiKey, apiRoutes);
@@ -132,15 +152,15 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, () => {
   const host = process.env.HOST || `http://localhost:${PORT}`;
   logger.info(`
-╔══════════════════════════════════════════════════════════╗
-║              Ultra Matrix v2.0 - Shopify SaaS App        ║
-║──────────────────────────────────────────────────────────║
-║  Server:    http://localhost:${PORT}                         ║
-║  Public:    ${host.padEnd(44)}║
-║  API:       ${(host + '/api/v1').padEnd(44)}║
-║  Database:  PostgreSQL (Prisma)                           ║
-║  Queue:     BullMQ + Redis                               ║
-╚══════════════════════════════════════════════════════════╝
+ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+â              Ultra Matrix v2.0 - Shopify SaaS App        â
+ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+â  Server:    http://localhost:${PORT}                         â
+â  Public:    ${host.padEnd(44)}â
+â  API:       ${(host + '/api/v1').padEnd(44)}â
+â  Database:  PostgreSQL (Prisma)                          â
+â  Queue:     BullMQ + Redis                               â
+ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   `);
 });
 
