@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Shop, ShopSettings } = require('../services/database');
-const { verifyHmac, buildAuthUrl, exchangeToken, getApiKey } = require('../middleware/auth');
+const { verifyHmac, buildAuthUrl, exchangeToken, exchangeSessionTokenForOfflineToken, verifySessionToken, getApiKey } = require('../middleware/auth');
 
 // GET /auth - Start OAuth flow
 router.get('/', (req, res) => {
@@ -85,6 +85,47 @@ router.get('/callback', async (req, res) => {
   } catch (error) {
     console.error('OAuth callback error:', error);
     res.status(500).send(`Authentication failed: ${error.message}`);
+  }
+});
+
+// POST /auth/token - Exchange App Bridge session token for expiring offline access token
+router.post('/token', async (req, res) => {
+  try {
+    const { session_token } = req.body;
+    if (!session_token) {
+      return res.status(400).json({ error: 'Missing session_token' });
+    }
+
+    // Verify the session token to extract shop domain
+    const decoded = verifySessionToken(session_token);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Invalid session token' });
+    }
+
+    const shopDomain = decoded.shopDomain;
+    const shopRecord = await Shop.findUnique(shopDomain);
+    if (!shopRecord) {
+      return res.status(404).json({ error: 'Shop not found' });
+    }
+
+    // Exchange session token for expiring offline access token
+    const tokenData = await exchangeSessionTokenForOfflineToken(shopDomain, session_token);
+
+    if (tokenData.access_token) {
+      // Update the stored access token
+      await Shop.update(shopRecord.id, { accessToken: tokenData.access_token });
+      console.log(`[AUTH] Token exchange success for ${shopDomain} (expires in ${tokenData.expires_in || '?'}s)`);
+      return res.json({
+        success: true,
+        expires_in: tokenData.expires_in,
+        scope: tokenData.scope,
+      });
+    }
+
+    res.status(500).json({ error: 'Token exchange returned no access token' });
+  } catch (error) {
+    console.error('[AUTH] Token exchange error:', error.message);
+    res.status(500).json({ error: error.message });
   }
 });
 
