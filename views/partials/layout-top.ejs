@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ultra Matrix - <%= typeof pageTitle !== 'undefined' ? pageTitle : 'Shopify Bulk Import/Export' %></title>
+  <% if (typeof apiKey !== 'undefined' && apiKey) { %>
+  <meta name="shopify-api-key" content="<%= apiKey %>" />
+  <% } %>
   <link rel="stylesheet" href="/css/style.css">
   <% if (typeof shopDomain !== 'undefined' && shopDomain) { %>
   <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
