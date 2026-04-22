@@ -8,7 +8,7 @@ function getApiKey() {
   return process.env.SHOPIFY_API_KEY || process.env.SHOPIFY_CLIENT_ID || '';
 }
 
-function getApiSecret() 
+function getApiSecret()  {
   return process.env.SHOPIFY_API_SECRET || process.env.SHOPIFY_CLIENT_SECRET || '';
 }
 
