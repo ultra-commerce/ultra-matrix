@@ -264,6 +264,7 @@ async function exchangeSessionTokenForOfflineToken(shop, sessionToken) {
       subject_token: sessionToken,
       subject_token_type: 'urn:ietf:params:oauth:token-type:id_token',
       requested_token_type: 'urn:shopify:params:oauth:token-type:offline-access-token',
+            expiring: 1,
     }),
   });
 
