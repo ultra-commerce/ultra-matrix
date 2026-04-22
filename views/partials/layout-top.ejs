@@ -8,11 +8,35 @@
   <% if (typeof shopDomain !== 'undefined' && shopDomain) { %>
   <script src="https://cdn.shopify.com/shopifycloud/app-bridge.js"></script>
   <script>
-    // Initialize Shopify App Bridge for embedded app
-    if (window.shopify) {
-      // App Bridge 4.x auto-initializes when loaded from Shopify admin
+    // Initialize Shopify App Bridge and exchange session token for expiring offline token
+    (async function() {
+      if (!window.shopify) return;
       console.log('App Bridge loaded');
-    }
+      try {
+        // Get session token from App Bridge
+        const sessionToken = await window.shopify.idToken();
+        if (sessionToken) {
+          // Exchange it for an expiring offline access token
+          const resp = await fetch('/auth/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + sessionToken,
+            },
+            body: JSON.stringify({ session_token: sessionToken }),
+          });
+          const data = await resp.json();
+          if (data.success) {
+            console.log('Token exchange success, expires in', data.expires_in, 's');
+            window.__tokenRefreshed = true;
+          } else {
+            console.warn('Token exchange failed:', data.error);
+          }
+        }
+      } catch (e) {
+        console.warn('Token exchange error:', e.message);
+      }
+    })();
   </script>
   <% } %>
   <% if (typeof shopDomain !== 'undefined' && shopDomain) { %>
@@ -24,21 +48,21 @@
   <!-- Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
-      <h1>⚡ Ultra Matrix</h1>
+      <h1>â¡ Ultra Matrix</h1>
       <div class="shop-name"><%= typeof shopDomain !== 'undefined' ? shopDomain : '' %></div>
     </div>
     <nav class="sidebar-nav">
       <a href="/?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'home' ? 'active' : '' %>">
-        <span class="nav-icon">🏠</span> Ultra Matrix
+        <span class="nav-icon">ð </span> Ultra Matrix
       </a>
       <a href="/jobs?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'jobs' ? 'active' : '' %>">
-        <span class="nav-icon">📋</span> All Jobs
+        <span class="nav-icon">ð</span> All Jobs
       </a>
       <a href="/settings?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'settings' ? 'active' : '' %>">
-        <span class="nav-icon">⚙️</span> Settings
+        <span class="nav-icon">âï¸</span> Settings
       </a>
       <a href="/plan?shop=<%= typeof shopDomain !== 'undefined' ? shopDomain : '' %>" class="<%= page === 'plan' ? 'active' : '' %>">
-        <span class="nav-icon">💎</span> Plan
+        <span class="nav-icon">ð</span> Plan
       </a>
     </nav>
     <div class="sidebar-footer">
