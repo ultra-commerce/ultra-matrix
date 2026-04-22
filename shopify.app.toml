@@ -1,25 +1,25 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = "8f1681559f943fe4e3619d99a8b206c3"
+client_id = "da2b4b7dd9933ce0542548f4111b3dbf"
 name = "Ultra Matrix"
 application_url = "https://hospitable-forgiveness-production-4c00.up.railway.app"
 embedded = true
-handle = "ultra-matrix-1"
+handle = "ultra-matrix-app-2"
+
+[build]
+automatically_update_urls_on_dev = true
 
 [webhooks]
 api_version = "2024-10"
 
   [webhooks.privacy_compliance]
-    customer_deletion_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/customers/redact"
-      customer_data_request_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/customers/data_request"
-        shop_deletion_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/shop/redact"
+  customer_deletion_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/customers/redact"
+  customer_data_request_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/customers/data_request"
+  shop_deletion_url = "https://hospitable-forgiveness-production-4c00.up.railway.app/webhooks/shop/redact"
 
-        [access_scopes]
-        scopes = "read_content,write_content,read_themes,write_themes,read_products,write_products,read_customers,write_customers,read_orders,write_orders"
+[access_scopes]
+scopes = "read_content,write_content,read_themes,write_themes,read_products,write_products,read_customers,write_customers,read_orders,write_orders"
+use_legacy_install_flow = false
 
-        [auth]
-        redirect_urls = [ "https://hospitable-forgiveness-production-4c00.up.railway.app/auth/callback" ]
-
-        [build]
-        automatically_update_urls_on_dev = true
-        
+[auth]
+redirect_urls = [ "https://hospitable-forgiveness-production-4c00.up.railway.app/auth/callback" ]
