@@ -8,7 +8,7 @@ function getApiKey() {
   return process.env.SHOPIFY_API_KEY || process.env.SHOPIFY_CLIENT_ID || '';
 }
 
-function getApiSecret() {
+function getApiSecret() 
   return process.env.SHOPIFY_API_SECRET || process.env.SHOPIFY_CLIENT_SECRET || '';
 }
 
@@ -262,7 +262,7 @@ async function exchangeSessionTokenForOfflineToken(shop, sessionToken) {
       client_secret: getApiSecret(),
       grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
       subject_token: sessionToken,
-      subject_token_type: 'urn:ietf:params:oauth:token-type:id-token',
+      subject_token_type: 'urn:ietf:params:oauth:token-type:id_token',
       requested_token_type: 'urn:shopify:params:oauth:token-type:offline-access-token',
     }),
   });
